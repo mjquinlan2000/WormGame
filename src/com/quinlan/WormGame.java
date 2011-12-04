@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 import javax.swing.JComponent;
@@ -17,6 +18,8 @@ public class WormGame extends JComponent implements ActionListener {
     Color currentColor = startColor;
     int animationDuration = 2000;   // each animation will take 2 seconds
     long animStartTime;     // start time for each animation
+    public static enum Direction {RIGHT, LEFT, DOWN, UP};
+    Direction currentDirection = Direction.RIGHT;
     
     /**
      * Set up and start the timer
@@ -27,7 +30,39 @@ public class WormGame extends JComponent implements ActionListener {
         timer.setInitialDelay(1000);
         animStartTime = 1000 + System.nanoTime() / 1000000;
         timer.start();
-        addKeyListener(new KeyListener());
+        addKeyListener(new KeyListener(){
+
+			@Override
+			public void keyPressed(KeyEvent key) {
+				switch(key.getKeyCode())
+				{
+				case KeyEvent.VK_UP:
+					if(currentDirection != Direction.DOWN)
+						currentDirection = Direction.UP;
+					break;
+				case KeyEvent.VK_DOWN:
+					if(currentDirection != Direction.UP)
+						currentDirection = Direction.DOWN;
+					break;
+				case KeyEvent.VK_RIGHT:
+					if(currentDirection != Direction.LEFT)
+						currentDirection = Direction.RIGHT;
+					break;
+				case KeyEvent.VK_LEFT:
+					if(currentDirection != Direction.RIGHT)
+						currentDirection = Direction.LEFT;
+					break;
+				}
+				
+			}
+
+			@Override
+			public void keyReleased(KeyEvent arg0) {/*nop*/}
+
+			@Override
+			public void keyTyped(KeyEvent arg0) {/*nop*/}
+        	
+        });
     }
     
     /**
