@@ -1,7 +1,9 @@
 package com.quinlan;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -70,8 +72,10 @@ public class WormGame extends JComponent implements ActionListener {
      * color (which is being animated elsewhere)
      */
     public void paintComponent(Graphics g) {
-        g.setColor(getBackground());
+        g.setColor(Color.BLACK);
         g.fillRect(0, 0, getWidth(), getHeight());
+        g.setColor(Color.BLUE);
+        g.fillRect(10, 10, getWidth() - 20, getHeight() - 20);
         g.setColor(currentColor);
         g.fillOval(0, 0, getWidth(), getHeight());
     }
@@ -104,9 +108,15 @@ public class WormGame extends JComponent implements ActionListener {
     }
     
     private static void createAndShowGUI() {    
-        JFrame f = new JFrame("Animated Graphics");
-        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        f.setSize(200, 200);
+        JFrame f = new JFrame();
+        f.setTitle("Worm Game");
+		Toolkit toolkit = Toolkit.getDefaultToolkit();
+		Dimension screen = toolkit.getScreenSize();
+		int w = (int)screen.getWidth()/2 - 250;
+		int h = (int)screen.getHeight()/2 - 250;
+		f.setSize(500, 500);
+		f.setLocation(w, h);
+		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         f.add(new WormGame());
         f.setVisible(true);
     }
