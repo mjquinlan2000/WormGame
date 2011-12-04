@@ -1,11 +1,11 @@
 package com.quinlan;
 
-import java.awt.Color;
-
 public class Cell {
 	public static enum direction {UP, DOWN, LEFT, RIGHT};
 	boolean pieceVisible = false;
 	boolean border = true;
+	boolean first;
+	boolean last;
 
 	public boolean isPieceVisible() {
 		return pieceVisible;
@@ -21,6 +21,22 @@ public class Cell {
 
 	public void setBorder(boolean border) {
 		this.border = border;
+	}
+
+	public boolean isFirst() {
+		return first;
+	}
+
+	public void setFirst(boolean first) {
+		this.first = first;
+	}
+
+	public boolean isLast() {
+		return last;
+	}
+
+	public void setLast(boolean last) {
+		this.last = last;
 	}	
 	
 }
