@@ -23,11 +23,17 @@ public class WormGame extends JComponent implements ActionListener {
     public static enum Direction {RIGHT, LEFT, DOWN, UP};
     Direction currentDirection = Direction.RIGHT;
     private Cell[][] board = new Cell[50][50];
+    double cellHeight;
+    double cellWidth;
+    Color borderColor=Color.BLACK;
+    Color boardColor=Color.BLUE;
     
     /**
      * Set up and start the timer
      */
     public WormGame() {
+    	cellHeight = getHeight()/50.0;
+    	cellWidth = getWidth()/50.0;
         Timer timer = new Timer(30, this);
         // initial delay while window gets set up
         timer.setInitialDelay(1000);
