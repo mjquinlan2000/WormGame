@@ -23,17 +23,17 @@ public class WormGame extends JComponent implements ActionListener {
     public static enum Direction {RIGHT, LEFT, DOWN, UP};
     Direction currentDirection = Direction.RIGHT;
     private Cell[][] board = new Cell[50][50];
-    double cellHeight;
+    private static double cellHeight;
     double cellWidth;
     Color borderColor=Color.BLACK;
     Color boardColor=Color.BLUE;
+    Cell wormHead;
+    Cell wormTail;
     
     /**
      * Set up and start the timer
      */
     public WormGame() {
-    	cellHeight = getHeight()/50.0;
-    	cellWidth = getWidth()/50.0;
         Timer timer = new Timer(30, this);
         // initial delay while window gets set up
         timer.setInitialDelay(1000);
@@ -79,12 +79,14 @@ public class WormGame extends JComponent implements ActionListener {
      * color (which is being animated elsewhere)
      */
     public void paintComponent(Graphics g) {
+    	cellHeight = (double)getHeight()/60.0;
+    	cellWidth = (double)getWidth()/80.0;
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, getWidth(), getHeight());
         g.setColor(Color.BLUE);
-        g.fillRect(10, 10, getWidth() - 20, getHeight() - 20);
-        g.setColor(currentColor);
-        g.fillOval(0, 0, getWidth(), getHeight());
+        g.fillRect((int)cellHeight, (int)cellWidth, getWidth() - 2*(int)cellWidth, getHeight() - 2*(int)cellHeight);
+//        g.setColor(currentColor);
+//        g.fillOval(0, 0, getWidth(), getHeight());
     }
     
     /**
@@ -119,10 +121,11 @@ public class WormGame extends JComponent implements ActionListener {
         f.setTitle("Worm Game");
 		Toolkit toolkit = Toolkit.getDefaultToolkit();
 		Dimension screen = toolkit.getScreenSize();
-		int w = (int)screen.getWidth()/2 - 250;
-		int h = (int)screen.getHeight()/2 - 250;
-		f.setSize(500, 500);
+		int w = (int)screen.getWidth()/2 - 400;
+		int h = (int)screen.getHeight()/2 - 300;
+		f.setSize(800, 600);
 		f.setLocation(w, h);
+		f.setResizable(false);
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         f.add(new WormGame());
         f.setVisible(true);
