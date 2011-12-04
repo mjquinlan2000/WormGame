@@ -22,6 +22,7 @@ public class WormGame extends JComponent implements ActionListener {
     long animStartTime;     // start time for each animation
     public static enum Direction {RIGHT, LEFT, DOWN, UP};
     Direction currentDirection = Direction.RIGHT;
+    private Cell[][] board = new Cell[50][50];
     
     /**
      * Set up and start the timer
