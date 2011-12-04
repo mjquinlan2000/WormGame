@@ -21,25 +21,112 @@ public class WormGame extends JComponent implements ActionListener {
     int animationDuration = 2000;   // each animation will take 2 seconds
     long animStartTime;     // start time for each animation
     public static enum Direction {RIGHT, LEFT, DOWN, UP};
-    Direction currentDirection = Direction.RIGHT;
-    private Cell[][] board = new Cell[50][50];
+    private static Direction currentDirection = Direction.RIGHT;
+    private Cell[][] board = new Cell[80][60];
     private static double cellHeight;
     double cellWidth;
-    Color borderColor=Color.BLACK;
-    Color boardColor=Color.BLUE;
-    Cell wormHead;
-    Cell wormTail;
+    private Color borderColor=Color.BLACK;
+    private Color boardColor=Color.BLUE;
+    private Color pieceColor = Color.GREEN;
+    private Color foodColor = Color.RED;
+    private Cell wormHead;
+    private Cell wormTail;
+    private Cell food;
     
-    /**
-     * Set up and start the timer
-     */
     public WormGame() {
+    	initBoard();
+    	initWorm();
+    	
         Timer timer = new Timer(30, this);
         // initial delay while window gets set up
         timer.setInitialDelay(1000);
         animStartTime = 1000 + System.nanoTime() / 1000000;
         timer.start();
-        addKeyListener(new KeyListener(){
+    }
+    
+    private void initBoard()
+    {
+    	for(int i = 0; i < 80; i++)
+    	{
+    		for(int j = 0; j < 60; j++)
+    		{
+    			Cell tmpCell = new Cell(i, j);
+    			tmpCell.setPieceVisible(false);
+    			if(i == 0 || i == 79 || j == 0 || j == 59)
+    			{
+    				tmpCell.setBorder(true);
+    			}else
+    			{
+    				tmpCell.setBorder(false);
+    			}
+    			board[i][j] = tmpCell;
+    		}
+    	}
+    }
+    
+    public void initWorm()
+    {
+    	for(int i = 40; i > 35; i--)
+    	{
+    		board[i][30].setPieceVisible(true);
+    	}
+    }
+
+    public void paintComponent(Graphics g) {
+    	cellHeight = (double)getHeight()/60.0;
+    	cellWidth = (double)getWidth()/80.0;
+        g.setColor(this.borderColor);
+        g.fillRect(0, 0, getWidth(), getHeight());
+        g.setColor(boardColor);
+        g.fillRect((int)cellHeight, (int)cellWidth, getWidth() - 2*(int)cellWidth, getHeight() - 2*(int)cellHeight);
+        g.setColor(pieceColor);
+        for(int i = 0; i < 80; i++)
+        {
+        	for(int j = 0; j < 60; j++)
+        	{
+        		if(board[i][j].isPieceVisible())
+        		g.fillOval((int)(cellWidth*i), (int)(cellHeight*j), (int)cellWidth, (int)cellHeight);
+        	}
+        }
+//        g.setColor(currentColor);
+//        g.fillOval(0, 0, getWidth(), getHeight());
+    }
+    
+    public void actionPerformed(ActionEvent ae) {
+        // calculate elapsed fraction of animation
+        long currentTime = System.nanoTime() / 1000000;
+        long totalTime = currentTime - animStartTime;
+        if (totalTime > animationDuration) {
+            animStartTime = currentTime;
+        }
+        
+        switch (currentDirection)
+        {
+        case RIGHT:
+        	break;
+        case LEFT:
+        	break;
+        case UP:
+        	break;
+        case DOWN:
+        	break;
+        }
+        // force a repaint to display our oval with its new color
+        repaint();
+    }
+    
+    private static void createAndShowGUI() {    
+        JFrame f = new JFrame();
+        f.setTitle("Worm Game");
+		Toolkit toolkit = Toolkit.getDefaultToolkit();
+		Dimension screen = toolkit.getScreenSize();
+		int w = (int)screen.getWidth()/2 - 400;
+		int h = (int)screen.getHeight()/2 - 300;
+		f.setSize(800, 600);
+		f.setLocation(w, h);
+		f.setResizable(false);
+		
+		f.addKeyListener(new KeyListener(){
 
 			@Override
 			public void keyPressed(KeyEvent key) {
@@ -72,60 +159,7 @@ public class WormGame extends JComponent implements ActionListener {
 			public void keyTyped(KeyEvent arg0) {/*nop*/}
         	
         });
-    }
-    
-    /**
-     * Erase to the background color and fill an oval with the current
-     * color (which is being animated elsewhere)
-     */
-    public void paintComponent(Graphics g) {
-    	cellHeight = (double)getHeight()/60.0;
-    	cellWidth = (double)getWidth()/80.0;
-        g.setColor(Color.BLACK);
-        g.fillRect(0, 0, getWidth(), getHeight());
-        g.setColor(Color.BLUE);
-        g.fillRect((int)cellHeight, (int)cellWidth, getWidth() - 2*(int)cellWidth, getHeight() - 2*(int)cellHeight);
-//        g.setColor(currentColor);
-//        g.fillOval(0, 0, getWidth(), getHeight());
-    }
-    
-    /**
-     * Callback from the Swing Timer. Calculate the fraction elapsed of
-     * our desired animation duration and interpolate between our start and
-     * end colors accordingly.
-     */
-    public void actionPerformed(ActionEvent ae) {
-        // calculate elapsed fraction of animation
-        long currentTime = System.nanoTime() / 1000000;
-        long totalTime = currentTime - animStartTime;
-        if (totalTime > animationDuration) {
-            animStartTime = currentTime;
-        }
-        float fraction = (float)totalTime / animationDuration;
-        fraction = Math.min(1.0f, fraction);
-        // interpolate between start and end colors with current fraction
-        int red = (int)(fraction * endColor.getRed() + 
-                (1 - fraction) * startColor.getRed());
-        int green = (int)(fraction * endColor.getGreen() + 
-                (1 - fraction) * startColor.getGreen());
-        int blue = (int)(fraction * endColor.getBlue() + 
-                (1 - fraction) * startColor.getBlue());
-        // set our new color appropriately
-        currentColor = new Color(red, green, blue);
-        // force a repaint to display our oval with its new color
-        repaint();
-    }
-    
-    private static void createAndShowGUI() {    
-        JFrame f = new JFrame();
-        f.setTitle("Worm Game");
-		Toolkit toolkit = Toolkit.getDefaultToolkit();
-		Dimension screen = toolkit.getScreenSize();
-		int w = (int)screen.getWidth()/2 - 400;
-		int h = (int)screen.getHeight()/2 - 300;
-		f.setSize(800, 600);
-		f.setLocation(w, h);
-		f.setResizable(false);
+		
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         f.add(new WormGame());
         f.setVisible(true);

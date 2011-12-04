@@ -6,6 +6,13 @@ public class Cell {
 	boolean border = true;
 	boolean first;
 	boolean last;
+	private int x, y;
+	
+	public Cell(int x, int y)
+	{
+		this.x = x;
+		this.y = y;
+	}
 
 	public boolean isPieceVisible() {
 		return pieceVisible;
@@ -37,6 +44,14 @@ public class Cell {
 
 	public void setLast(boolean last) {
 		this.last = last;
-	}	
+	}
+
+	public int getX() {
+		return x;
+	}
+
+	public int getY() {
+		return y;
+	}
 	
 }
