@@ -24,7 +24,7 @@ public class WormGame extends JComponent implements ActionListener {
     private static Direction currentDirection = Direction.RIGHT;
     private Cell[][] board = new Cell[80][60];
     private static double cellHeight;
-    double cellWidth;
+    private static double cellWidth;
     private Color borderColor=Color.BLACK;
     private Color boardColor=Color.BLUE;
     private Color pieceColor = Color.GREEN;
@@ -32,12 +32,14 @@ public class WormGame extends JComponent implements ActionListener {
     private Cell wormHead;
     private Cell wormTail;
     private Cell food;
+    private Timer timer;
+    private static int wormSize;
     
     public WormGame() {
     	initBoard();
     	initWorm();
     	
-        Timer timer = new Timer(30, this);
+        timer = new Timer(100, this);
         // initial delay while window gets set up
         timer.setInitialDelay(1000);
         animStartTime = 1000 + System.nanoTime() / 1000000;
@@ -52,6 +54,7 @@ public class WormGame extends JComponent implements ActionListener {
     		{
     			Cell tmpCell = new Cell(i, j);
     			tmpCell.setPieceVisible(false);
+    			tmpCell.setFood(false);
     			if(i == 0 || i == 79 || j == 0 || j == 59)
     			{
     				tmpCell.setBorder(true);
@@ -69,7 +72,19 @@ public class WormGame extends JComponent implements ActionListener {
     	for(int i = 40; i > 35; i--)
     	{
     		board[i][30].setPieceVisible(true);
+    		if(i != 40)
+    		{
+    			board[i][30].setNext(board[i+1][30]);
+    		}
+    		
+    		if(i != 36)
+    		{
+    			board[i][30].setPrev(board[i-1][30]);
+    		}
     	}
+    	wormHead = board[40][30];
+    	wormTail = board[36][30];
+    	wormSize = 5;
     }
 
     public void paintComponent(Graphics g) {
@@ -100,15 +115,70 @@ public class WormGame extends JComponent implements ActionListener {
             animStartTime = currentTime;
         }
         
+        int x = wormHead.getX();
+    	int y = wormHead.getY();
+        
         switch (currentDirection)
         {
         case RIGHT:
+        	wormHead.setNext(board[x + 1][y]);
+        	wormHead.getNext().setPrev(wormHead);
+        	wormHead = board[x+1][y];
+        	wormHead.setPieceVisible(true);
+        	if(!wormHead.isFood())
+        	{
+        		wormTail.setPieceVisible(false);
+        		wormTail = wormTail.getNext();
+        		wormTail.getPrev().setNext(null);
+        		wormTail.setPrev(null);
+        	}else{
+        		wormSize++;
+        	}
         	break;
         case LEFT:
+        	wormHead.setNext(board[x - 1][y]);
+        	wormHead.getNext().setPrev(wormHead);
+        	wormHead = board[x-1][y];
+        	wormHead.setPieceVisible(true);
+        	if(!wormHead.isFood())
+        	{
+        		wormTail.setPieceVisible(false);
+        		wormTail = wormTail.getNext();
+        		wormTail.getPrev().setNext(null);
+        		wormTail.setPrev(null);
+        	}else{
+        		wormSize++;
+        	}
         	break;
         case UP:
+        	wormHead.setNext(board[x][y - 1]);
+        	wormHead.getNext().setPrev(wormHead);
+        	wormHead = board[x][y-1];
+        	wormHead.setPieceVisible(true);
+        	if(!wormHead.isFood())
+        	{
+        		wormTail.setPieceVisible(false);
+        		wormTail = wormTail.getNext();
+        		wormTail.getPrev().setNext(null);
+        		wormTail.setPrev(null);
+        	}else{
+        		wormSize++;
+        	}
         	break;
         case DOWN:
+        	wormHead.setNext(board[x][y+1]);
+        	wormHead.getNext().setPrev(wormHead);
+        	wormHead = board[x][y+1];
+        	wormHead.setPieceVisible(true);
+        	if(!wormHead.isFood())
+        	{
+        		wormTail.setPieceVisible(false);
+        		wormTail = wormTail.getNext();
+        		wormTail.getPrev().setNext(null);
+        		wormTail.setPrev(null);
+        	}else{
+        		wormSize++;
+        	}
         	break;
         }
         // force a repaint to display our oval with its new color
@@ -172,5 +242,10 @@ public class WormGame extends JComponent implements ActionListener {
             }
         };
         SwingUtilities.invokeLater(doCreateAndShowGUI);
+    }
+    
+    public void makeFood()
+    {
+//    	int randX = 
     }
 }
