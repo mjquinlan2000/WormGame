@@ -1,104 +1,84 @@
 package com.quinlan;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Paint;
-import java.awt.Toolkit;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
-public class WormGame extends JFrame implements Runnable{
-	public static int rightLeft = 0;
-	public static int upDown = 0;
-	public Thread thisThread = new Thread(this);
-	
-	public WormGame()
-	{
-//		this.setSize(new Dimension(500, 500));
-		this.setTitle("Worm Game");
-		Toolkit toolkit = Toolkit.getDefaultToolkit();
-		Dimension screen = toolkit.getScreenSize();
-		int w = (int)screen.getWidth()/2 - 250;
-		int h = (int)screen.getHeight()/2 - 250;
-		this.setSize(500, 500);
-		this.setLocation(w, h);
-		
-		this.addKeyListener(new KeyListener() {
-
-			@Override
-			public void keyPressed(KeyEvent arg0) {
-				switch(arg0.getKeyCode())
-				{
-				case KeyEvent.VK_DOWN:
-					System.out.println("Down Pressed");
-					upDown -= 5;
-					break;
-				case KeyEvent.VK_UP:
-					System.out.println("Up Pressed");
-					upDown += 5;
-					break;
-				case KeyEvent.VK_LEFT:
-					System.out.println("Left Pressed" );
-					rightLeft -= 5;
-					break;
-				case KeyEvent.VK_RIGHT:
-					System.out.println("Right Pressed");
-					rightLeft += 5;
-					break;
-				}
-				
-			}
-
-			@Override
-			public void keyReleased(KeyEvent arg0) {
-				
-			}
-
-			@Override
-			public void keyTyped(KeyEvent arg0) {
-				
-			}
-			
-		});
-		thisThread.start();
-	}
-	
-	public static void main(String[] args)
-	{
-		WormGame wg = new WormGame();
-		wg.setVisible(true);
-		wg.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	}
-	@Override
-	public void paint(Graphics g)
-	{
-		super.paint(g);
-		Graphics2D g2 = (Graphics2D)g;
-		g2.setColor(Color.BLACK);
-//		g2.fillRect(0, 10, 100, 100);
-		g2.drawRect(100, 100, 100, 100);
-		
-		g2.translate(upDown, rightLeft);
-		
-	}
-
-	@Override
-	public void run() {
-		while(true)
-		{
-			this.paint(new Dot(0, 0, 0));
-			System.out.println("HERE");
-			try {
-				Thread.sleep(50);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-	}
+public class WormGame extends JComponent implements ActionListener {
+    Color startColor = Color.GRAY;  // where we start
+    Color endColor = Color.BLACK;         // where we end
+    Color currentColor = startColor;
+    int animationDuration = 2000;   // each animation will take 2 seconds
+    long animStartTime;     // start time for each animation
+    
+    /**
+     * Set up and start the timer
+     */
+    public WormGame() {
+        Timer timer = new Timer(30, this);
+        // initial delay while window gets set up
+        timer.setInitialDelay(1000);
+        animStartTime = 1000 + System.nanoTime() / 1000000;
+        timer.start();
+    }
+    
+    /**
+     * Erase to the background color and fill an oval with the current
+     * color (which is being animated elsewhere)
+     */
+    public void paintComponent(Graphics g) {
+        g.setColor(getBackground());
+        g.fillRect(0, 0, getWidth(), getHeight());
+        g.setColor(currentColor);
+        g.fillOval(0, 0, getWidth(), getHeight());
+    }
+    
+    /**
+     * Callback from the Swing Timer. Calculate the fraction elapsed of
+     * our desired animation duration and interpolate between our start and
+     * end colors accordingly.
+     */
+    public void actionPerformed(ActionEvent ae) {
+        // calculate elapsed fraction of animation
+        long currentTime = System.nanoTime() / 1000000;
+        long totalTime = currentTime - animStartTime;
+        if (totalTime > animationDuration) {
+            animStartTime = currentTime;
+        }
+        float fraction = (float)totalTime / animationDuration;
+        fraction = Math.min(1.0f, fraction);
+        // interpolate between start and end colors with current fraction
+        int red = (int)(fraction * endColor.getRed() + 
+                (1 - fraction) * startColor.getRed());
+        int green = (int)(fraction * endColor.getGreen() + 
+                (1 - fraction) * startColor.getGreen());
+        int blue = (int)(fraction * endColor.getBlue() + 
+                (1 - fraction) * startColor.getBlue());
+        // set our new color appropriately
+        currentColor = new Color(red, green, blue);
+        // force a repaint to display our oval with its new color
+        repaint();
+    }
+    
+    private static void createAndShowGUI() {    
+        JFrame f = new JFrame("Animated Graphics");
+        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        f.setSize(200, 200);
+        f.add(new WormGame());
+        f.setVisible(true);
+    }
+    
+    public static void main(String args[]) {
+        Runnable doCreateAndShowGUI = new Runnable() {
+            public void run() {
+                createAndShowGUI();
+            }
+        };
+        SwingUtilities.invokeLater(doCreateAndShowGUI);
+    }
 }
