@@ -1,23 +1,19 @@
 package com.quinlan;
 
 import java.awt.BorderLayout;
+import java.awt.Button;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.text.AttributedCharacterIterator;
 import java.util.Random;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
@@ -46,13 +42,16 @@ public class WormGame extends JComponent implements ActionListener {
     private static ScorePanel scorePanel;
     public static int score = 0;
     private static boolean canMove = true;
+    private static final int DELAY = 125;
+    private static int delayOffset = 0;
+    private static Button resetButton;
     
     public WormGame() {
     	initBoard();
     	initWorm();
     	makeFood();
     	
-        timer = new Timer(100, this);
+        timer = new Timer(DELAY, this);
         // initial delay while window gets set up
         timer.setInitialDelay(1000);
         animStartTime = 1000 + System.nanoTime() / 1000000;
@@ -123,18 +122,9 @@ public class WormGame extends JComponent implements ActionListener {
         		}
         	}
         }
-//        g.setColor(currentColor);
-//        g.fillOval(0, 0, getWidth(), getHeight());
     }
     
     public void actionPerformed(ActionEvent ae) {
-        // calculate elapsed fraction of animation
-        long currentTime = System.nanoTime() / 1000000;
-        long totalTime = currentTime - animStartTime;
-        if (totalTime > animationDuration) {
-            animStartTime = currentTime;
-        }
-        
         int x = wormHead.getX();
     	int y = wormHead.getY();
         
@@ -170,6 +160,7 @@ public class WormGame extends JComponent implements ActionListener {
     		wormTail.setPrev(null);
     	}else{
     		score++;
+    		timer.setDelay(DELAY - delayOffset++);
     		scorePanel.getScore().setText(String.valueOf(score));
     		scorePanel.repaint();
     		wormHead.setFood(false);
@@ -211,9 +202,22 @@ public class WormGame extends JComponent implements ActionListener {
 		f.setResizable(false);
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         scorePanel = new ScorePanel();
+        
         f.add(scorePanel, BorderLayout.PAGE_END);
         
-        f.add(new WormGame(), BorderLayout.CENTER);
+        final WormGame wg = new WormGame();
+        
+        f.add(wg, BorderLayout.CENTER);
+        
+        resetButton = scorePanel.getRestartButton();
+        resetButton.addActionListener(new ActionListener(){
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				wg.resetGame();
+			}
+        	
+        });
         
         f.addKeyListener(new KeyListener(){
 			@Override
@@ -271,7 +275,6 @@ public class WormGame extends JComponent implements ActionListener {
     		Random rand1 = new Random();
     		int randX = rand1.nextInt(CELLSX-2) + 1;
     		int randY = rand1.nextInt(CELLSY-2) + 1;
-    		System.out.println(randX + " " + randY);
     		current = board[randX][randY];
     		if(!current.isPieceVisible())
     		{
@@ -280,5 +283,21 @@ public class WormGame extends JComponent implements ActionListener {
     	}while(current.isPieceVisible() == true);
     	
     	
+    }
+    
+    public void resetGame()
+    {
+    	currentDirection = Direction.RIGHT;
+    	score = 0;
+    	scorePanel.getScore().setText("0");
+    	initBoard();
+    	initWorm();
+    	makeFood();
+    	timer.setDelay(DELAY);
+    	delayOffset = 0;
+    	timer.start();
+    	scorePanel.getInfoLabel().setText("Score:  ");
+    	this.repaint();
+    	scorePanel.repaint();
     }
 }
