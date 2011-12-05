@@ -1,16 +1,23 @@
 package com.quinlan;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.text.AttributedCharacterIterator;
+import java.util.Random;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
@@ -22,7 +29,7 @@ public class WormGame extends JComponent implements ActionListener {
     long animStartTime;     // start time for each animation
     public static enum Direction {RIGHT, LEFT, DOWN, UP};
     private static Direction currentDirection = Direction.RIGHT;
-    private Cell[][] board = new Cell[80][60];
+    private Cell[][] board = new Cell[CELLSX][CELLSY];
     private static double cellHeight;
     private static double cellWidth;
     private Color borderColor=Color.BLACK;
@@ -31,13 +38,19 @@ public class WormGame extends JComponent implements ActionListener {
     private Color foodColor = Color.RED;
     private Cell wormHead;
     private Cell wormTail;
-    private Cell food;
     private Timer timer;
-    private static int wormSize;
+    private static int CELLSX = 40;
+    private static int CELLSY = 30;
+    private static boolean hitWall = false;
+    private static boolean hitSelf = false;
+    private static ScorePanel scorePanel;
+    public static int score = 0;
+    private static boolean canMove = true;
     
     public WormGame() {
     	initBoard();
     	initWorm();
+    	makeFood();
     	
         timer = new Timer(100, this);
         // initial delay while window gets set up
@@ -48,14 +61,14 @@ public class WormGame extends JComponent implements ActionListener {
     
     private void initBoard()
     {
-    	for(int i = 0; i < 80; i++)
+    	for(int i = 0; i < CELLSX; i++)
     	{
-    		for(int j = 0; j < 60; j++)
+    		for(int j = 0; j < CELLSY; j++)
     		{
     			Cell tmpCell = new Cell(i, j);
     			tmpCell.setPieceVisible(false);
     			tmpCell.setFood(false);
-    			if(i == 0 || i == 79 || j == 0 || j == 59)
+    			if(i == 0 || i == CELLSX - 1 || j == 0 || j == CELLSY-1)
     			{
     				tmpCell.setBorder(true);
     			}else
@@ -69,38 +82,45 @@ public class WormGame extends JComponent implements ActionListener {
     
     public void initWorm()
     {
-    	for(int i = 40; i > 35; i--)
+    	int start = CELLSX/2;
+    	for(int i = start; i > start - 5 ; i--)
     	{
-    		board[i][30].setPieceVisible(true);
-    		if(i != 40)
+    		board[i][CELLSY/2].setPieceVisible(true);
+    		if(i != start)
     		{
-    			board[i][30].setNext(board[i+1][30]);
+    			board[i][CELLSY/2].setNext(board[i+1][CELLSY/2]);
     		}
     		
-    		if(i != 36)
+    		if(i != start - 4)
     		{
-    			board[i][30].setPrev(board[i-1][30]);
+    			board[i][CELLSY/2].setPrev(board[i-1][CELLSY/2]);
     		}
     	}
-    	wormHead = board[40][30];
-    	wormTail = board[36][30];
-    	wormSize = 5;
+    	wormHead = board[start][CELLSY/2];
+    	wormTail = board[start - 4][CELLSY/2];
     }
 
     public void paintComponent(Graphics g) {
-    	cellHeight = (double)getHeight()/60.0;
-    	cellWidth = (double)getWidth()/80.0;
-        g.setColor(this.borderColor);
+    	cellHeight = (double)getHeight()/(double)CELLSY;
+    	cellWidth = (double)getWidth()/(double)CELLSX;
+        g.setColor(borderColor);
         g.fillRect(0, 0, getWidth(), getHeight());
         g.setColor(boardColor);
-        g.fillRect((int)cellHeight, (int)cellWidth, getWidth() - 2*(int)cellWidth, getHeight() - 2*(int)cellHeight);
+        g.fillRect((int)cellHeight, (int)cellWidth, getWidth() - (int)(2*cellWidth), getHeight() - (int)(2*cellHeight));
         g.setColor(pieceColor);
-        for(int i = 0; i < 80; i++)
+        for(int i = 0; i < CELLSX; i++)
         {
-        	for(int j = 0; j < 60; j++)
+        	for(int j = 0; j < CELLSY; j++)
         	{
         		if(board[i][j].isPieceVisible())
-        		g.fillOval((int)(cellWidth*i), (int)(cellHeight*j), (int)cellWidth, (int)cellHeight);
+        			g.fillOval((int)(cellWidth*i), (int)(cellHeight*j), (int)cellWidth, (int)cellHeight);
+        		
+        		if(board[i][j].isFood())
+        		{
+        			g.setColor(foodColor);
+        			g.fillOval((int)(cellWidth*i), (int)(cellHeight*j), (int)cellWidth, (int)cellHeight);
+        			g.setColor(pieceColor);
+        		}
         	}
         }
 //        g.setColor(currentColor);
@@ -124,100 +144,101 @@ public class WormGame extends JComponent implements ActionListener {
         	wormHead.setNext(board[x + 1][y]);
         	wormHead.getNext().setPrev(wormHead);
         	wormHead = board[x+1][y];
-        	wormHead.setPieceVisible(true);
-        	if(!wormHead.isFood())
-        	{
-        		wormTail.setPieceVisible(false);
-        		wormTail = wormTail.getNext();
-        		wormTail.getPrev().setNext(null);
-        		wormTail.setPrev(null);
-        	}else{
-        		wormSize++;
-        	}
         	break;
         case LEFT:
         	wormHead.setNext(board[x - 1][y]);
         	wormHead.getNext().setPrev(wormHead);
         	wormHead = board[x-1][y];
-        	wormHead.setPieceVisible(true);
-        	if(!wormHead.isFood())
-        	{
-        		wormTail.setPieceVisible(false);
-        		wormTail = wormTail.getNext();
-        		wormTail.getPrev().setNext(null);
-        		wormTail.setPrev(null);
-        	}else{
-        		wormSize++;
-        	}
         	break;
         case UP:
         	wormHead.setNext(board[x][y - 1]);
         	wormHead.getNext().setPrev(wormHead);
         	wormHead = board[x][y-1];
-        	wormHead.setPieceVisible(true);
-        	if(!wormHead.isFood())
-        	{
-        		wormTail.setPieceVisible(false);
-        		wormTail = wormTail.getNext();
-        		wormTail.getPrev().setNext(null);
-        		wormTail.setPrev(null);
-        	}else{
-        		wormSize++;
-        	}
         	break;
         case DOWN:
         	wormHead.setNext(board[x][y+1]);
         	wormHead.getNext().setPrev(wormHead);
         	wormHead = board[x][y+1];
-        	wormHead.setPieceVisible(true);
-        	if(!wormHead.isFood())
-        	{
-        		wormTail.setPieceVisible(false);
-        		wormTail = wormTail.getNext();
-        		wormTail.getPrev().setNext(null);
-        		wormTail.setPrev(null);
-        	}else{
-        		wormSize++;
-        	}
         	break;
         }
+        
+        if(!wormHead.isFood())
+    	{
+    		wormTail.setPieceVisible(false);
+    		wormTail = wormTail.getNext();
+    		wormTail.getPrev().setNext(null);
+    		wormTail.setPrev(null);
+    	}else{
+    		score++;
+    		scorePanel.getScore().setText(String.valueOf(score));
+    		scorePanel.repaint();
+    		wormHead.setFood(false);
+    		makeFood();
+    	}
+
+        if(wormHead.isPieceVisible())
+        {
+        	hitSelf = true;
+        	scorePanel.getInfoLabel().setText("You ate yourself!! Score:  ");
+        	scorePanel.repaint();
+        	timer.stop();
+        }
+        
+        if(wormHead.isBorder())
+        {
+        	hitWall = true;
+        	scorePanel.getInfoLabel().setText("You hit a wall!! Score:  ");
+        	scorePanel.repaint();
+        	timer.stop();
+        }
+        
+        wormHead.setPieceVisible(true);
         // force a repaint to display our oval with its new color
         repaint();
+        canMove = true;
     }
     
     private static void createAndShowGUI() {    
         JFrame f = new JFrame();
+        f.setLayout(new BorderLayout());
         f.setTitle("Worm Game");
 		Toolkit toolkit = Toolkit.getDefaultToolkit();
 		Dimension screen = toolkit.getScreenSize();
 		int w = (int)screen.getWidth()/2 - 400;
 		int h = (int)screen.getHeight()/2 - 300;
-		f.setSize(800, 600);
+		f.setSize(800, 630);
 		f.setLocation(w, h);
 		f.setResizable(false);
-		
-		f.addKeyListener(new KeyListener(){
-
+		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        scorePanel = new ScorePanel();
+        f.add(scorePanel, BorderLayout.PAGE_END);
+        
+        f.add(new WormGame(), BorderLayout.CENTER);
+        
+        f.addKeyListener(new KeyListener(){
 			@Override
 			public void keyPressed(KeyEvent key) {
-				switch(key.getKeyCode())
-				{
-				case KeyEvent.VK_UP:
-					if(currentDirection != Direction.DOWN)
-						currentDirection = Direction.UP;
-					break;
-				case KeyEvent.VK_DOWN:
-					if(currentDirection != Direction.UP)
-						currentDirection = Direction.DOWN;
-					break;
-				case KeyEvent.VK_RIGHT:
-					if(currentDirection != Direction.LEFT)
-						currentDirection = Direction.RIGHT;
-					break;
-				case KeyEvent.VK_LEFT:
-					if(currentDirection != Direction.RIGHT)
-						currentDirection = Direction.LEFT;
-					break;
+				if(canMove){
+					canMove = false;
+					switch(key.getKeyCode())
+					{
+					case KeyEvent.VK_UP:
+						if(currentDirection != Direction.DOWN)
+							currentDirection = Direction.UP;
+						break;
+					case KeyEvent.VK_DOWN:
+						if(currentDirection != Direction.UP)
+							currentDirection = Direction.DOWN;
+						break;
+					case KeyEvent.VK_RIGHT:
+						if(currentDirection != Direction.LEFT)
+							currentDirection = Direction.RIGHT;
+						break;
+					case KeyEvent.VK_LEFT:
+						if(currentDirection != Direction.RIGHT)
+							currentDirection = Direction.LEFT;
+						break;
+					}
 				}
 				
 			}
@@ -229,9 +250,7 @@ public class WormGame extends JComponent implements ActionListener {
 			public void keyTyped(KeyEvent arg0) {/*nop*/}
         	
         });
-		
-		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        f.add(new WormGame());
+        
         f.setVisible(true);
     }
     
@@ -246,6 +265,20 @@ public class WormGame extends JComponent implements ActionListener {
     
     public void makeFood()
     {
-//    	int randX = 
+    	Cell current;
+    	
+    	do{
+    		Random rand1 = new Random();
+    		int randX = rand1.nextInt(CELLSX-2) + 1;
+    		int randY = rand1.nextInt(CELLSY-2) + 1;
+    		System.out.println(randX + " " + randY);
+    		current = board[randX][randY];
+    		if(!current.isPieceVisible())
+    		{
+    			current.setFood(true);
+    		}
+    	}while(current.isPieceVisible() == true);
+    	
+    	
     }
 }
