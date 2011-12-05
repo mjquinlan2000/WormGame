@@ -35,14 +35,13 @@ public class WormGame extends JComponent implements ActionListener {
     private Cell wormHead;
     private Cell wormTail;
     private Timer timer;
-    private static int CELLSX = 40;
-    private static int CELLSY = 30;
+    private static int CELLSX = 20;
+    private static int CELLSY = 15;
     private static boolean hitWall = false;
     private static boolean hitSelf = false;
     private static ScorePanel scorePanel;
     public static int score = 0;
-    private static boolean canMove = true;
-    private static final int DELAY = 125;
+    private static final int DELAY = 150;
     private static int delayOffset = 0;
     private static Button resetButton;
     
@@ -160,7 +159,10 @@ public class WormGame extends JComponent implements ActionListener {
     		wormTail.setPrev(null);
     	}else{
     		score++;
-    		timer.setDelay(DELAY - delayOffset++);
+    		delayOffset++;
+    		int newDelay = DELAY - 2*delayOffset;
+    		if(newDelay > 70)
+    			timer.setDelay(newDelay);
     		scorePanel.getScore().setText(String.valueOf(score));
     		scorePanel.repaint();
     		wormHead.setFood(false);
@@ -186,7 +188,6 @@ public class WormGame extends JComponent implements ActionListener {
         wormHead.setPieceVisible(true);
         // force a repaint to display our oval with its new color
         repaint();
-        canMove = true;
     }
     
     private static void createAndShowGUI() {    
@@ -222,27 +223,24 @@ public class WormGame extends JComponent implements ActionListener {
         f.addKeyListener(new KeyListener(){
 			@Override
 			public void keyPressed(KeyEvent key) {
-				if(canMove){
-					canMove = false;
-					switch(key.getKeyCode())
-					{
-					case KeyEvent.VK_UP:
-						if(currentDirection != Direction.DOWN)
-							currentDirection = Direction.UP;
-						break;
-					case KeyEvent.VK_DOWN:
-						if(currentDirection != Direction.UP)
-							currentDirection = Direction.DOWN;
-						break;
-					case KeyEvent.VK_RIGHT:
-						if(currentDirection != Direction.LEFT)
-							currentDirection = Direction.RIGHT;
-						break;
-					case KeyEvent.VK_LEFT:
-						if(currentDirection != Direction.RIGHT)
-							currentDirection = Direction.LEFT;
-						break;
-					}
+				switch(key.getKeyCode())
+				{
+				case KeyEvent.VK_UP:
+					if(currentDirection != Direction.DOWN)
+						currentDirection = Direction.UP;
+					break;
+				case KeyEvent.VK_DOWN:
+					if(currentDirection != Direction.UP)
+						currentDirection = Direction.DOWN;
+					break;
+				case KeyEvent.VK_RIGHT:
+					if(currentDirection != Direction.LEFT)
+						currentDirection = Direction.RIGHT;
+					break;
+				case KeyEvent.VK_LEFT:
+					if(currentDirection != Direction.RIGHT)
+						currentDirection = Direction.LEFT;
+					break;
 				}
 				
 			}
@@ -280,7 +278,7 @@ public class WormGame extends JComponent implements ActionListener {
     		{
     			current.setFood(true);
     		}
-    	}while(current.isPieceVisible() == true);
+    	}while(current.isPieceVisible());
     	
     	
     }
