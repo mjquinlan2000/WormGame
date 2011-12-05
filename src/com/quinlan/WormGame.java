@@ -37,8 +37,6 @@ public class WormGame extends JComponent implements ActionListener {
     private Timer timer;
     private static int CELLSX = 20;
     private static int CELLSY = 15;
-    private static boolean hitWall = false;
-    private static boolean hitSelf = false;
     private static ScorePanel scorePanel;
     public static int score = 0;
     private static final int DELAY = 150;
@@ -171,7 +169,6 @@ public class WormGame extends JComponent implements ActionListener {
 
         if(wormHead.isPieceVisible())
         {
-        	hitSelf = true;
         	scorePanel.getInfoLabel().setText("You ate yourself!! Score:  ");
         	scorePanel.repaint();
         	timer.stop();
@@ -179,7 +176,6 @@ public class WormGame extends JComponent implements ActionListener {
         
         if(wormHead.isBorder())
         {
-        	hitWall = true;
         	scorePanel.getInfoLabel().setText("You hit a wall!! Score:  ");
         	scorePanel.repaint();
         	timer.stop();
@@ -291,6 +287,7 @@ public class WormGame extends JComponent implements ActionListener {
     	initBoard();
     	initWorm();
     	makeFood();
+    	timer.stop();
     	timer.setDelay(DELAY);
     	delayOffset = 0;
     	timer.start();
